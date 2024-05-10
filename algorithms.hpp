@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 Kuznetsov Artyom
+// Copyright (c) 2024 Nogin Denis
 //
 #ifndef ALGORITHMS_HPP
 #define ALGORITHMS_HPP
