@@ -5,6 +5,66 @@
 
 namespace lp {
 
+void testSimplexMethodMax(
+    const std::vector<double>& func,
+    const std::vector<std::vector<double>>& limits) {
+    if (!lp::validateSimplexMethodMax(func, limits))
+        return;
+
+    size_t countLim = limits.size();
+    size_t sizeFunc = func.size();
+    size_t rows = countLim + 1;
+    size_t cols = sizeFunc + countLim + 1;
+    int numTests = factorial(sizeFunc);
+
+    // РўРµ Р¶Рµ limits РЅРѕ РІ РІРёРґРµ СЃС‚РѕР»Р±С†РѕРІ
+    std::vector<std::vector<double>> colLimits = limits;
+
+    // РЈР±РёСЂР°РµРј Р»Р°СЃС‚ Р·РЅР°С‡РµРЅРёСЏ РІ limits
+    for (int i = 0; i < colLimits.size(); ++i)
+        colLimits[i].pop_back();
+
+    // РўСЂР°РЅСЃРїРѕРЅРёСЂСѓРµРј, РґР»СЏ СѓРґРѕР±СЃС‚РІР° РїРѕР»СѓС‡РµРЅРёСЏ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє
+    colLimits = transpose(colLimits);
+
+    // Р”РѕР±Р°РІР»СЏРµРј Р·РЅР°С‡РµРЅРёСЏ С„СѓРЅРєС†РёР№
+    for (int i = 0; i < colLimits.size(); ++i)
+        colLimits[i].push_back(func[i]);
+
+    std::vector<std::vector<std::vector<double>>> permutations;
+    std::vector<std::vector<double>> permutationsFunc;
+    // Р“РµРЅРµСЂРёСЂСѓРµРј РІСЃРµ РІРѕР·РјРѕР¶РЅС‹Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРєРё limits
+    permutations = generatePermutations(colLimits);
+
+    // РџСЂРёРІРѕРґРёРј РІСЃС‘ РІ РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РІРёРґ
+    for (int k = 0; k < permutations.size(); ++k) {
+        permutations[k] = transpose(permutations[k]);
+        permutationsFunc.push_back(permutations[k][permutations[k].size() - 1]);
+        permutations[k].pop_back();
+        for (int i = 0; i < permutations[k].size(); ++i) {
+            permutations[k][i].push_back(limits[i][limits[i].size() - 1]);
+        }
+    }
+
+    // РўРµСЃС‚С‹
+    for (int i = 0; i < numTests; ++i) {
+        std::cout << "- - - - - - - - - - - - - TEST " << i + 1 << 
+            " - - - - - - - - - - - - -" << std::endl;
+
+        auto basis = lp::createBasisSimplexMethodMax(sizeFunc, countLim);
+        auto matr = lp::createMatrixSimplexMethodMax(permutationsFunc[i], permutations[i], rows, cols, sizeFunc,
+            countLim);
+
+        lp::calculateSimplexMethodMax(matr, basis, countLim);
+
+        auto result = lp::makeResult(matr, basis, sizeFunc);
+
+        lp::printResultMaxSimplexMethod(result);
+        std::cout << "- - - - - - - - - - - - - - - - -" <<
+            " - - - - - - - - - - - - -" << std::endl;
+    }
+}
+
 void printResultMaxSimplexMethod(
     const std::pair<double, std::vector<double>>& ans) {
   size_t sizeFunc = ans.second.size();
@@ -109,7 +169,7 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
     int indCol = -1;
     int indRow = -1;
 
-    // Ищем первый попавшийся отрицательный элемент
+    // РС‰РµРј РїРµСЂРІС‹Р№ РїРѕРїР°РІС€РёР№СЃСЏ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚
     for (int i = 0; i < cols - 2; ++i) {
       if (matr(rows - 1, i) < 0.0) {
         indCol = i;
@@ -117,7 +177,7 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
       }
     }
 
-    // Если не нашли отр элемент, то план оптимален
+    // Р•СЃР»Рё РЅРµ РЅР°С€Р»Рё РѕС‚СЂ СЌР»РµРјРµРЅС‚, С‚Рѕ РїР»Р°РЅ РѕРїС‚РёРјР°Р»РµРЅ
     if (indCol == -1) {
       std::cout << "Found optimal plan.\n";
       break;
@@ -128,11 +188,11 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
     int minBasisIndCol = -1;
     double minRatio = std::numeric_limits<double>::max();
 
-    // Ищем базисный элемент по минимальному положительному отношению
+    // РС‰РµРј Р±Р°Р·РёСЃРЅС‹Р№ СЌР»РµРјРµРЅС‚ РїРѕ РјРёРЅРёРјР°Р»СЊРЅРѕРјСѓ РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕРјСѓ РѕС‚РЅРѕС€РµРЅРёСЋ
     for (int i = 0; i < countLim; ++i) {
       double ratio = 0.0;
 
-      // Если делимое не равно нулю, выполняем вычисление отношения
+      // Р•СЃР»Рё РґРµР»РёРјРѕРµ РЅРµ СЂР°РІРЅРѕ РЅСѓР»СЋ, РІС‹РїРѕР»РЅСЏРµРј РІС‹С‡РёСЃР»РµРЅРёРµ РѕС‚РЅРѕС€РµРЅРёСЏ
       if (!isEqual(matr(i, indCol), 0.0)) {
         if (isEqual(matr(i, cols - 1), 0.0) && matr(i, indCol) > 0.0)
           nearZero = true;
@@ -144,8 +204,8 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
         ratioExist = true;
         nearZero = false;
 
-        // Если есть одинаковые отношения, берем тот, у которого меньший индекс
-        // базисной переменной
+        // Р•СЃР»Рё РµСЃС‚СЊ РѕРґРёРЅР°РєРѕРІС‹Рµ РѕС‚РЅРѕС€РµРЅРёСЏ, Р±РµСЂРµРј С‚РѕС‚, Сѓ РєРѕС‚РѕСЂРѕРіРѕ РјРµРЅСЊС€РёР№ РёРЅРґРµРєСЃ
+        // Р±Р°Р·РёСЃРЅРѕР№ РїРµСЂРµРјРµРЅРЅРѕР№
         if (isEqual(ratio, minRatio)) {
           int currBasisIndCol = basis[i];
 
@@ -163,24 +223,24 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
       }
     }
 
-    // Если все отношения недопустимые, то оптимального плана нет
+    // Р•СЃР»Рё РІСЃРµ РѕС‚РЅРѕС€РµРЅРёСЏ РЅРµРґРѕРїСѓСЃС‚РёРјС‹Рµ, С‚Рѕ РѕРїС‚РёРјР°Р»СЊРЅРѕРіРѕ РїР»Р°РЅР° РЅРµС‚
     if (!ratioExist) {
       std::cout << "Not found optimal plan.\n";
       break;
     }
 
-    // Если выбранный элемент в качестве базисного != 1, то преобразуем всю
-    // строку деля на этот элемент
+    // Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅС‹Р№ СЌР»РµРјРµРЅС‚ РІ РєР°С‡РµСЃС‚РІРµ Р±Р°Р·РёСЃРЅРѕРіРѕ != 1, С‚Рѕ РїСЂРµРѕР±СЂР°Р·СѓРµРј РІСЃСЋ
+    // СЃС‚СЂРѕРєСѓ РґРµР»СЏ РЅР° СЌС‚РѕС‚ СЌР»РµРјРµРЅС‚
     if (!isEqual(matr(indRow, indCol), 1.0)) {
       double value = matr(indRow, indCol);
 
       for (int i = 0; i < cols; ++i) matr(indRow, i) /= value;
     }
 
-    // Записываем, какая переменная становится базисной на данном шаге
+    // Р—Р°РїРёСЃС‹РІР°РµРј, РєР°РєР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ СЃС‚Р°РЅРѕРІРёС‚СЃСЏ Р±Р°Р·РёСЃРЅРѕР№ РЅР° РґР°РЅРЅРѕРј С€Р°РіРµ
     basis[indRow] = indCol;
 
-    // Выполняем преобразование строк
+    // Р’С‹РїРѕР»РЅСЏРµРј РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРє
     transformationRows(matr, indRow, indCol);
   }
 }
@@ -188,7 +248,7 @@ void calculateSimplexMethodMax(Matrix<double>& matr, std::vector<int>& basis,
 std::pair<double, std::vector<double>> simplexMethodMax(
     const std::vector<double>& func,
     const std::vector<std::vector<double>>& limits) {
-  // Необходимые проверки (валидация)
+  // РќРµРѕР±С…РѕРґРёРјС‹Рµ РїСЂРѕРІРµСЂРєРё (РІР°Р»РёРґР°С†РёСЏ)
   if (!validateSimplexMethodMax(func, limits))
     return std::pair(0.0, std::vector<double>());
 
@@ -197,7 +257,7 @@ std::pair<double, std::vector<double>> simplexMethodMax(
   size_t rows = countLim + 1;
   size_t cols = sizeFunc + countLim + 1;
 
-  // Создаем симплекс таблицу и массив для базиса
+  // РЎРѕР·РґР°РµРј СЃРёРјРїР»РµРєСЃ С‚Р°Р±Р»РёС†Сѓ Рё РјР°СЃСЃРёРІ РґР»СЏ Р±Р°Р·РёСЃР°
   auto matr = createMatrixSimplexMethodMax(func, limits, rows, cols, sizeFunc,
                                            countLim);
   auto basis = createBasisSimplexMethodMax(sizeFunc, countLim);
