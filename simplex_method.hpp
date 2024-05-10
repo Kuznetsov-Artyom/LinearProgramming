@@ -6,11 +6,17 @@
 
 #include <cmath>
 #include <limits>
+#include <numeric>
+#include <vector>
 
 #include "matrix.hpp"
 #include "print_functions.hpp"
+#include "algorithms.hpp"
 
 namespace lp {
+
+void testSimplexMethodMax(const std::vector<double>& func,
+    const std::vector<std::vector<double>>& limits);
 
 void printResultMaxSimplexMethod(
     const std::pair<double, std::vector<double>>& ans);
@@ -20,9 +26,8 @@ bool isEqual(double valueOne, double valueTwo, double eps = 0.01);
 void transformationRows(Matrix<double>& matr, size_t indRowBase,
                         size_t indColBase);
 
-std::pair<double, std::vector<double>> makeResult(const Matrix<double>& matr,
-                                                  const std::vector<int>& basis,
-                size_t sizeFunc);
+std::pair<double, std::vector<double>> makeResult(const Matrix<double>& matr, 
+                                    const std::vector<int>& basis, size_t sizeFunc);
 
 bool validateSimplexMethodMax(const std::vector<double>& func,
                               const std::vector<std::vector<double>>& limits);
@@ -42,4 +47,3 @@ std::pair<double, std::vector<double>> simplexMethodMax(const std::vector<double
 }  // namespace lp
 
 #endif  // SIMPLEX_METHOD_HPP
-
