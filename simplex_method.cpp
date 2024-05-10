@@ -17,47 +17,26 @@ void testSimplexMethodMax(
     size_t cols = sizeFunc + countLim + 1;
     int numTests = factorial(sizeFunc);
 
+    // Те же limits но в виде столбцов
     std::vector<std::vector<double>> colLimits = limits;
 
+    // Убираем ласт значения в limits
     for (int i = 0; i < colLimits.size(); ++i)
         colLimits[i].pop_back();
 
+    // Транспонируем, для удобства получения перестановок
     colLimits = transpose(colLimits);
 
+    // Добавляем значения функций
     for (int i = 0; i < colLimits.size(); ++i)
         colLimits[i].push_back(func[i]);
 
-    /*std::cout << "limits" << std::endl;
-    for (auto vec : limits) {
-        for (auto elem : vec) {
-            std::cout << elem << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "colLimits" << std::endl;
-    for (auto vec : colLimits) {
-        for (auto elem : vec) {
-            std::cout << elem << " ";
-        }
-        std::cout << std::endl;
-    }*/
-
     std::vector<std::vector<std::vector<double>>> permutations;
     std::vector<std::vector<double>> permutationsFunc;
+    // Генерируем все возможные перестановки limits
     permutations = generatePermutations(colLimits);
 
-    /*std::cout << "permutations" << std::endl;
-    for (int k = 0; k < permutations.size(); ++k) {
-        for (int i = 0; i < permutations[k].size(); ++i) {
-            for (int j = 0; j < permutations[k][i].size(); ++j) {
-                std::cout << permutations[k][i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-        std::cout << std::endl;
-    }*/
-
+    // Приводим всё в нормальный вид
     for (int k = 0; k < permutations.size(); ++k) {
         permutations[k] = transpose(permutations[k]);
         permutationsFunc.push_back(permutations[k][permutations[k].size() - 1]);
@@ -67,38 +46,7 @@ void testSimplexMethodMax(
         }
     }
 
-    /*std::cout << "permutations (newLimits): " << std::endl;
-    for (int k = 0; k < permutations.size(); ++k) {
-        for (int i = 0; i < permutations[k].size(); ++i) {
-            for (int j = 0; j < permutations[k][i].size(); ++j) {
-                std::cout << permutations[k][i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-        for (auto p : permutationsFunc[k]) {
-            std::cout << p << " ";
-        }
-        std::cout << std::endl << std::endl;
-    }*/
-
-    /*std::cout << "permutations2: " << std::endl;
-    for (auto& perm : permutations) {
-        for (auto& vec : perm) {
-            for (auto& elem : vec) {
-                std::cout << elem << " ";
-            }
-            std::cout << "\n";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "permutationsFunc: " << std::endl;
-    for (auto& vec : permutationsFunc) {
-        for (auto& elem : vec) {
-            std::cout << elem << " ";
-        }
-        std::cout << "\n";
-    }*/
-
+    // Тесты
     for (int i = 0; i < numTests; ++i) {
         std::cout << "- - - - - - - - - - - - - TEST " << i + 1 << 
             " - - - - - - - - - - - - -" << std::endl;
