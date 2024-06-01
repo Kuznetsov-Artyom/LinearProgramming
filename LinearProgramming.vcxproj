@@ -129,12 +129,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="algorithms.cpp" />
     <ClCompile Include="backpack.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="simplex_method.cpp" />
     <ClCompile Include="simplex_method_two_phaze.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="algorithms.hpp" />
     <ClInclude Include="backpack.hpp" />
     <ClInclude Include="lp.hpp" />
     <ClInclude Include="matrix.hpp" />
